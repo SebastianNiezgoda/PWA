@@ -83,7 +83,12 @@
             ];
             navigator.vibrate(pattern);
             
-            
+            // Opcjonalnie: zmień tekst przycisku na chwilę
+            const btn = document.getElementById('sos-btn');
+            btn.textContent = "SYGNAŁ AKTYWOWANY!";
+            setTimeout(() => {
+                btn.textContent = "AKTYWUJ SYGNAŁ";
+            }, 3000);
         } else {
             alert("Twoja przeglądarka nie obsługuje wibracji!");
         }
