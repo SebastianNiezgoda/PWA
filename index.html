@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikacja PWA - Zespół</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        #map { height: 400px; }
+        .screen { display: none; }
+        .active { display: block; }
+    </style>
+</head>
+<body class="container mt-3">
+    <!-- Strona główna -->
+    <div id="home-screen" class="screen active">
+        <h1 class="text-center">Aplikacja PWA</h1>
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2>Autorzy</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item">Sebastian Niezgoda 225667</li>
+                    <li class="list-group-item">Imię Nazwisko 2 - nr indeksu</li>
+                    <li class="list-group-item">Imię Nazwisko 3 - nr indeksu</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="d-grid gap-2 mt-4">
+            <button class="btn btn-primary" onclick="showScreen('map-screen')">Mapa GPS</button>
+            <button class="btn btn-danger" onclick="showScreen('sos-screen')">SOS</button>
+        </div>
+    </div>
+
+    <!-- Ekran mapy -->
+    <div id="map-screen" class="screen">
+        <h2 class="text-center">Mapa GPS</h2>
+        <div id="map"></div>
+        <div class="mt-2">
+            <p>Twoja lokalizacja: <span id="location-info">Pobieranie danych...</span></p>
+        </div>
+        <button class="btn btn-secondary mt-2" onclick="showScreen('home-screen')">Powrót</button>
+    </div>
+
+    <!-- Ekran SOS -->
+    <div id="sos-screen" class="screen">
+        <h2 class="text-center text-danger">SOS</h2>
+        <div class="alert alert-danger">
+            W razie nagłego wypadku naciśnij przycisk poniżej aby wysłać sygnał SOS
+        </div>
+        <button id="sos-btn" class="btn btn-danger btn-lg w-100 py-4" onclick="sendSOS()">
+            WYŚLIJ SYGNAŁ SOS
+        </button>
+        <button class="btn btn-secondary mt-4" onclick="showScreen('home-screen')">Powrót</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Obsługa przełączania ekranów
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            // Inicjalizacja mapy gdy ekran jest pokazywany
+            if(screenId === 'map-screen' && !window.map) {
+                initMap();
+            }
+        }
+
+        // Mapa
+        let map;
+        let marker;
+        
+        function initMap() {
+            map = L.map('map').setView([50.06914, 19.9547], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            
+            // Pobieranie lokalizacji użytkownika
+            if(navigator.geolocation) {
+                navigator.geolocation.watchPosition(updateLocation, handleLocationError);
+            } else {
+                document.getElementById('location-info').textContent = "Twoja przeglądarka nie obsługuje geolokalizacji";
+            }
+        }
+        
+        function updateLocation(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            document.getElementById('location-info').textContent = `Szerokość: ${lat.toFixed(5)}, Długość: ${lng.toFixed(5)}`;
+            
+            if(!marker) {
+                marker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup("Twoja lokalizacja").openPopup();
+            } else {
+                marker.setLatLng([lat, lng]);
+            }
+            
+            map.setView([lat, lng], 15);
+        }
+        
+        function handleLocationError(error) {
+            let message;
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = "Odmowa dostępu do lokalizacji";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = "Informacje o lokalizacji niedostępne";
+                    break;
+                case error.TIMEOUT:
+                    message = "Przekroczono czas oczekiwania na lokalizację";
+                    break;
+                default:
+                    message = "Nieznany błąd podczas pobierania lokalizacji";
+            }
+            document.getElementById('location-info').textContent = message;
+        }
+
+        // Funkcja SOS
+        function sendSOS() {
+            if(!navigator.vibrate) {
+                alert("Twoje urządzenie nie obsługuje wibracji!");
+                return;
+            }
+            
+            // 3x krótko (100ms), 3x długo (300ms), 3x krótko (100ms)
+            const pattern = [100, 50, 100, 50, 100, 50, 300, 50, 300, 50, 300, 50, 100, 50, 100, 50, 100];
+            
+            navigator.vibrate(pattern);
+            document.getElementById('sos-btn').textContent = "SYGNAŁ WYSŁANY!";
+            
+            setTimeout(() => {
+                document.getElementById('sos-btn').textContent = "WYŚLIJ SYGNAŁ SOS";
+            }, 3000);
+        }
+
+        // Rejestracja Service Worker dla PWA
+        if('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful');
+                }).catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
