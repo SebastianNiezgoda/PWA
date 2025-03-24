@@ -80,13 +80,14 @@
     
 
         
-        if('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => console.log('SW zarejestrowany'))
-                    .catch(err => console.log('Błąd SW:', err));
-            });
-        }
+        if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(res => console.log("service worker registered"))
+      .catch(err => console.log("service worker not registered", err))
+  })
+}
     </script>
 </body>
 </html>
