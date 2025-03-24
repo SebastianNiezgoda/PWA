@@ -15,8 +15,8 @@
 <body class="container mt-3">
     <!-- Menu główne -->
     <div id="home" class="screen active">
-        <h1>Nasza Aplikacja</h1>
-        <p>Autorzy: Jan Kowalski, Anna Nowak, Piotr Wiśniewski</p>
+        <h1>Aplikacja</h1>
+        <p>Autorzy: Sebastian Niezgoda 225667, Bartek Ryczek 227864, Tomasz Mielecki 226127</p>
         
         <button class="btn btn-primary w-100 mb-2" onclick="show('map')">Mapa GPS</button>
         <button class="btn btn-danger w-100" onclick="show('sos')">SOS</button>
@@ -75,17 +75,10 @@
 
         // Wibracje SOS
         function vibrate() {
-            if(!navigator.vibrate) {
-                alert("Twoje urządzenie nie obsługuje wibracji!");
-                return;
-            }
-            
+        
             // 3 krótkie, 3 długie, 3 krótkie (kod Morse'a SOS)
             navigator.vibrate([100, 50, 100, 50, 100, 50, 300, 50, 300, 50, 300, 50, 100, 50, 100, 50, 100]);
             
-            const btn = document.getElementById('sos-btn');
-            btn.textContent = "WYSŁANO SOS!";
-            setTimeout(() => btn.textContent = "AKTYWUJ SYGNAŁ", 2000);
         }
 
         // PWA - prosty Service Worker
