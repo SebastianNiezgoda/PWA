@@ -75,15 +75,55 @@
 
        
         function vibrate() {
-        
-            // 3 krótkie, 3 długie, 3 krótkie (kod Morse'a SOS)
-            navigator.vibrate(100);
-            
-        }
+    // Sprawdzenie czy wibracje są dostępne
+    if (!navigator.vibrate) {
+        alert("Twoje urządzenie nie obsługuje wibracji!");
+        return;
+    }
+
+    // Sekwencja SOS w Morse'u: 3 krótkie, 3 długie, 3 krótkie
+    const sosPattern = [
+        100, 30,  // 1 krótka (100ms wibracja + 30ms przerwa)
+        100, 30,  // 2 krótka
+        100, 30,  // 3 krótka
+        300, 30,  // 1 długa
+        300, 30,  // 2 długa
+        300, 30,  // 3 długa
+        100, 30,  // 1 krótka
+        100, 30,  // 2 krótka
+        100       // 3 krótka (bez końcowej przerwy)
+    ];
+
+    // Włącz przycisk SOS
+    const sosBtn = document.getElementById('sos-btn');
+    sosBtn.disabled = true;
+    sosBtn.textContent = "WYSYŁANIE SOS...";
+
+    // Wywołanie wibracji
+    const success = navigator.vibrate(sosPattern);
+
+    if (!success) {
+        alert("Nie udało się aktywować wibracji!");
+        sosBtn.textContent = "AKTYWUJ SYGNAŁ";
+        sosBtn.disabled = false;
+        return;
+    }
+
+    // Przywrócenie przycisku po zakończeniu sekwencji
+    const totalDuration = sosPattern.reduce((a, b) => a + b, 0);
+    setTimeout(() => {
+        sosBtn.textContent = "AKTYWUJ SYGNAŁ";
+        sosBtn.disabled = false;
+    }, totalDuration);
+}
 
         
         if('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW zarejestrowany'))
+                    .catch(err => console.log('Błąd SW:', err));
+            });
         }
     </script>
 </body>
